@@ -29,7 +29,7 @@ def calc_distance(city_a: Node, city_b: Node) -> float:
 
 
 def calc_total_distance(route: List[Node]) -> float:
-    """Calculate the total distance of a Hamiltonian path starting and returning from/to the same city"""
+    """Calculate the total distance of a route"""
     total_distance: float = 0
     if len(route) > 0:
         for i in range(len(route) - 1):
