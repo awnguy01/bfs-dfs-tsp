@@ -38,15 +38,11 @@ def calc_total_distance(route: List[Node]) -> float:
 
 
 def find_min_route(route_list: List[List[Node]]):
+    """Find the shortest weighted route from a list of routes """
     min_bfs = route_list[0]
     for route in route_list:
-        # print(*map(lambda node: node.name, route), end=' = ')
-        # print(calc_total_distance(route))
         if calc_total_distance(route) < calc_total_distance(min_bfs):
             min_bfs = route
-    # print('-' * 10)
-    # print(*map(lambda node: node.name, min_bfs), end=' = ')
-    # print(calc_total_distance(min_bfs))
     return min_bfs
 
 
@@ -61,5 +57,6 @@ def calc_elapsed_ts(start_time: int) -> str:
 
 
 def print_list_of_routes(all_routes: List[List[Node]]) -> None:
+    """Print to console the list of routes"""
     for route in all_routes:
         print(*map(lambda node: node.name, route))

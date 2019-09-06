@@ -4,7 +4,7 @@ Project 2 TSP Search with BFS and DFS
 @copyright Copyright 2019, Andrew Nguyen Vo, All Rights Reserved
 """
 from time import time
-from typing import List
+from typing import List, Callable
 
 from next_node_map import DEST_NODE_NAME_MAP
 from node import Node
@@ -12,7 +12,7 @@ from utils import get_file_path, calc_total_distance, find_min_route, print_list
 
 
 def get_node_list(file_name: str) -> List[Node]:
-    """"""
+    """Reads a TSP file and extracts list of nodes"""
     node_list: List[Node] = []
     with open(file_name) as f:
         for index, line in enumerate(f):
@@ -25,6 +25,7 @@ def get_node_list(file_name: str) -> List[Node]:
                 node_list.append(new_node)
         for node in node_list:
             dest_list: List[Node] = []
+            # Destination nodes for each node retrieved from a hardcoded map
             for dest_name in DEST_NODE_NAME_MAP.get(node.name):
                 for test_node in node_list:
                     if test_node.name == dest_name:
@@ -34,19 +35,27 @@ def get_node_list(file_name: str) -> List[Node]:
 
 
 def bfs(node_list: List[Node]) -> List[List[Node]]:
+    """Modified iterative breadth first search to get list of possible routes"""
     all_routes: List[List[Node]] = [[node_list[0]]]
     queue: List[Node] = [node_list[0]]
     while len(queue):
+        # De-queue algorithm characteristic of BFS
         curr_node = queue.pop(0)
+
+        # Container for routes that end it the currently de-queued node
         affected_routes: List[List[Node]] = []
 
         for route_index, route in enumerate(all_routes):
             if route[-1] == curr_node:
                 affected_routes.append(route)
+
+                # Remove affected routes in this loop from final list to be replaced by the post-append routes
                 del all_routes[route_index]
 
+        # Append each destination node to each affected route and append to final list
         for dest in curr_node.dest_nodes:
             if dest != node_list[-1]:
+                # Queue every destination to continue BFS until final destination is reached
                 queue.append(dest)
             for aff_route in affected_routes:
                 aff_route_copy = aff_route.copy()
@@ -56,20 +65,28 @@ def bfs(node_list: List[Node]) -> List[List[Node]]:
 
 
 def dfs(node_list: List[Node]) -> List[List[Node]]:
+    """Modified iterative depth first search to get list of possible routes"""
     all_routes: List[List[Node]] = [[node_list[0]]]
     stack: List[Node] = [node_list[0]]
 
     while len(stack):
+        # Stack pop algorithm characteristic of DFS
         curr_node = stack.pop()
+
+        # Container for routes that end in the currently popped node
         affected_routes: List[List[Node]] = []
 
         for route_index, route in enumerate(all_routes):
             if route[-1] == curr_node:
                 affected_routes.append(route)
+
+                # Remove affected routes in this loop from final list to be replaced by the post-append routes
                 del all_routes[route_index]
 
+        # Append each destination node to each affected route and append to final list
         for dest in curr_node.dest_nodes:
             if dest != node_list[-1]:
+                # Push every destination to continue DFS until final destination is reached
                 stack.append(dest)
             for aff_route in affected_routes:
                 aff_route_copy = aff_route.copy()
@@ -79,42 +96,31 @@ def dfs(node_list: List[Node]) -> List[List[Node]]:
     return all_routes
 
 
+def print_results(node_list: List[Node], search_fn: Callable[[List[Node]], List[List[Node]]]) -> None:
+    """Print results of each search function in a template format"""
+    time_start: float = time()
+    all_routes: List[List[Node]] = search_fn(node_list)
+    time_elapsed: str = calc_elapsed_ts(time_start)
+    if len(all_routes):
+        min_route = find_min_route(all_routes)
+        print(*map(lambda node: node.name, min_route), end=' = ')
+        print(calc_total_distance(min_route))
+    else:
+        print('Search could not find any valid routes')
+
+    print(f'Calculated in {time_elapsed}')
+
+
 def main():
     file_name: str = get_file_path([('TSP File', '*.tsp')])
     if file_name is not None:
         node_list: List[Node] = get_node_list(file_name)
 
-        bfs_start: int = time()
-        bfs_routes = bfs(node_list)
-        bfs_elapsed: str = calc_elapsed_ts(bfs_start)
+        # EXECUTE BREADTH FIRST SEARCH
+        print_results(node_list, bfs)
 
-        for route in bfs_routes:
-            # print(*map(lambda node: node.name, route), end=' = ')
-            print(calc_total_distance(route))
-
-        if len(bfs_routes):
-            min_route = find_min_route(bfs_routes)
-            print(*map(lambda node: node.name, min_route), end=' = ')
-            print(calc_total_distance(min_route))
-        else:
-            print('BFS could not find any valid routes')
-
-        print(f'Calculated in {bfs_elapsed}')
-
-        ###############################################################
-
-        dfs_start: int = time()
-        dfs_routes = dfs(node_list)
-        dfs_elapsed: str = calc_elapsed_ts(dfs_start)
-
-        if len(dfs_routes):
-            min_route = find_min_route(dfs_routes)
-            print(*map(lambda node: node.name, min_route), end=' = ')
-            print(calc_total_distance(min_route))
-        else:
-            print('DFS could not find any valid routes')
-
-        print(f'Calculated in {dfs_elapsed}')
+        # EXECUTE DEPTH FIRST SEARCH
+        print_results(node_list, dfs)
 
 
 if __name__ == "__main__":
